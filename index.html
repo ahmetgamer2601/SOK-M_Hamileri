@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sokum-Ahi | Kültürel Miras Envanteri</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="auth-active"> <div id="auth-section" class="auth-overlay">
+        <div class="auth-card">
+            <div class="auth-header">
+                <i class="fa-solid fa-landmark-dome"></i>
+                <h1>SOKÜM-Hamileri</h1>
+                <p>Geleceğe Aktarılan Kültürel Miras</p>
+            </div>
+
+            <div id="login-container">
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="login-email" placeholder="E-posta Adresi">
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="login-password" placeholder="Şifre">
+                </div>
+                <button class="btn-primary" id="btn-login">Giriş Yap</button>
+                <p class="auth-footer">Hesabın yok mu? <a href="#" id="to-register">Kayıt Ol</a></p>
+            </div>
+
+            <div id="register-container" style="display: none;">
+                <div class="input-group">
+                    <i class="fa-solid fa-school"></i>
+                    <input type="text" id="reg-name" placeholder="Okul Adı / Temsilci">
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="reg-email" placeholder="E-posta">
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="reg-password" placeholder="Şifre">
+                </div>
+                <button class="btn-primary" id="btn-register">Hesap Oluştur</button>
+                <p class="auth-footer">Zaten üye misin? <a href="#" id="to-login">Giriş Yap</a></p>
+            </div>
+        </div>
+    </div>
+
+    <main id="app-content" style="display: none;">
+        <nav class="top-nav">
+            <div class="nav-left">
+                <div class="logo">SOKÜM-Hami</div>
+            </div>
+            <div class="user-info">
+                <span id="display-username">Yükleniyor...</span>
+                <button id="btn-logout" title="Çıkış Yap"><i class="fa-solid fa-power-off"></i></button>
+            </div>
+        </nav>
+
+        <section class="main-dashboard">
+            <div class="content-header">
+                <h2>Türkiye Kültürel Miras Haritası</h2>
+                <p>İncelemek istediğiniz ili harita üzerinden seçiniz.</p>
+            </div>
+
+            <div class="map-wrapper">
+                <div id="turkey-map"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="city-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-city-name">Şehir Başlığı</h2>
+                <span class="close-modal" id="close-modal-btn">&times;</span>
+            </div>
+        <div class="modal-body">
+    <div class="category-tabs">
+        <button class="tab-btn active" data-cat="yemek">Gastronomi</button>
+        <button class="tab-btn" data-cat="sanat">Zanaat & Sanat</button>
+        <button class="tab-btn" data-cat="kiyafet">Geleneksel Giyim</button>
+        <button class="tab-btn" data-cat="sozlu">Efsaneler & Destanlar</button>
+    </div>
+
+    <div class="city-content-layout">
+        <div class="content-left">
+            <h3 id="content-title">Kategori Başlığı</h3>
+            <p id="content-text">Bu ile ait kültürel bilgiler burada yer alacak. Geçmişten günümüze aktarılan bu miras...</p>
+        </div>
+
+        <div class="content-right">
+            <div class="media-box video-wrapper">
+                <video id="city-video" src=""></video>
+                <div class="video-overlay">
+                    <button class="play-btn" onclick="toggleFullScreenVideo()">
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="media-box slider-wrapper">
+                <div class="slider-container" id="image-slider">
+                    </div>
+                <button class="slider-nav prev"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="slider-nav next"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
