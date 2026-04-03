@@ -31,7 +31,7 @@ const cityNames = { "1": "Adana", "2": "Adıyaman", "3": "Afyonkarahisar", "4": 
 
 let currentCityID = null;
 let currentUserData = null;
-let activeCategory = "gastronomi";
+let activeCategory = "el-sanatlari"; 
 
 document.addEventListener('DOMContentLoaded', () => {
     const mapDiv = document.getElementById('turkey-map');
