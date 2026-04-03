@@ -14,42 +14,25 @@
             <div class="auth-header">
                 <i class="fa-solid fa-map-location-dot"></i>
                 <h1>SOKÜM-Hami</h1>
-                <p>Şehrinizin Kültür Elçisi Olun</p>
+                <p>Kültürel Miras Platformu</p>
             </div>
             
             <div id="login-container">
-                <div class="input-group">
-                    <i class="fa-solid fa-envelope"></i>
-                    <input type="email" id="login-email" placeholder="E-posta">
-                </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="login-password" placeholder="Şifre">
-                </div>
+                <div class="input-group"><i class="fa-solid fa-envelope"></i><input type="email" id="login-email" placeholder="E-posta"></div>
+                <div class="input-group"><i class="fa-solid fa-lock"></i><input type="password" id="login-password" placeholder="Şifre"></div>
                 <button class="btn-primary" id="btn-login">Giriş Yap</button>
-                <p class="auth-footer">Henüz hesabınız yok mu? <a href="#" id="to-register">Kayıt Ol</a></p>
+                <p class="auth-footer">Hesabınız yok mu? <a href="#" id="to-register">Kayıt Ol</a></p>
             </div>
 
             <div id="register-container" style="display: none;">
-                <div class="input-group">
-                    <i class="fa-solid fa-user"></i>
-                    <input type="text" id="reg-name" placeholder="Ad Soyad / Kurum Adı">
-                </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-envelope"></i>
-                    <input type="email" id="reg-email" placeholder="E-posta">
-                </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="reg-password" placeholder="Şifre">
-                </div>
+                <div class="input-group"><i class="fa-solid fa-user"></i><input type="text" id="reg-name" placeholder="Ad Soyad"></div>
+                <div class="input-group"><i class="fa-solid fa-envelope"></i><input type="email" id="reg-email" placeholder="E-posta"></div>
+                <div class="input-group"><i class="fa-solid fa-lock"></i><input type="password" id="reg-password" placeholder="Şifre"></div>
                 <div class="input-group">
                     <i class="fa-solid fa-city"></i>
-                    <select id="reg-city">
-                        <option value="" disabled selected>Sorumlu Olduğunuz İl</option>
-                        </select>
+                    <select id="reg-city"><option value="" disabled selected>Sorumlu Olduğunuz Şehir</option></select>
                 </div>
-                <button class="btn-primary" id="btn-register">Temsilci Olarak Kaydol</button>
+                <button class="btn-primary" id="btn-register">Kayıt Ol</button>
                 <p class="auth-footer">Zaten üye misiniz? <a href="#" id="to-login">Giriş Yap</a></p>
             </div>
         </div>
@@ -57,9 +40,7 @@
 
     <main id="app-content" style="display: none;">
         <nav class="top-nav">
-            <div class="nav-left">
-                <span class="logo">SOKÜM-HAMİLERİ</span>
-            </div>
+            <div class="nav-left"><span class="logo">SOKÜM-HAMİLERİ</span></div>
             <div class="user-pill">
                 <i class="fa-solid fa-circle-user"></i>
                 <span id="display-username">...</span>
@@ -67,27 +48,17 @@
                 <button id="btn-logout"><i class="fa-solid fa-right-from-bracket"></i></button>
             </div>
         </nav>
-
         <section class="map-section">
-            <div class="map-info">
-                <h2>Türkiye Kültürel Miras Envanteri</h2>
-                <p>İncelemek için bir şehre tıklayın veya kendi şehrinize veri girin.</p>
-            </div>
-            <div class="map-container">
-                <div id="turkey-map"></div> </div>
+            <div class="map-container"><div id="turkey-map"></div></div>
         </section>
     </main>
 
     <div id="city-modal" class="modal">
         <div class="modal-content">
             <header class="modal-header">
-                <div class="header-titles">
-                    <h2 id="modal-city-name">Şehir İsmi</h2>
-                    <span class="id-badge" id="modal-city-id">TR00</span>
-                </div>
+                <div class="header-titles"><h2 id="modal-city-name">...</h2><span id="modal-city-id" class="id-badge"></span></div>
                 <button class="close-btn" id="close-modal-btn">&times;</button>
             </header>
-
             <div class="modal-grid">
                 <div class="grid-left">
                     <div class="tabs">
@@ -96,26 +67,12 @@
                         <button class="tab-btn" data-cat="giysi">Giyim Kuşam</button>
                         <button class="tab-btn" data-cat="sozlu">Sözlü Kültür</button>
                     </div>
-                    
-                    <div class="content-box">
-                        <h3 id="cat-title">Gastronomi</h3>
-                        <div id="content-display">
-                            <p id="content-text">Veri yükleniyor...</p>
-                        </div>
-                    </div>
+                    <div class="content-box"><h3 id="cat-title">Gastronomi</h3><p id="content-text">...</p></div>
                 </div>
-
                 <div class="grid-right">
-                    <div class="video-container" id="video-container">
-                        <div id="video-placeholder" class="placeholder">
-                            <i class="fa-brands fa-youtube"></i>
-                            <p>Video Henüz Eklenmemiş</p>
-                        </div>
-                        </div>
-
+                    <div class="video-container" id="video-container"></div>
                     <div class="image-gallery">
-                        <div class="slider" id="image-slider">
-                            </div>
+                        <div class="slider" id="image-slider"></div>
                         <div class="slider-controls">
                             <button class="s-prev"><i class="fa-solid fa-arrow-left"></i></button>
                             <button class="s-next"><i class="fa-solid fa-arrow-right"></i></button>
@@ -125,39 +82,15 @@
             </div>
 
             <div id="admin-panel" class="admin-section" style="display: none;">
-                <div class="admin-header">
-                    <i class="fa-solid fa-screwdriver-wrench"></i>
-                    <h4>Bu Şehirden Sorumlusunuz: Veri Güncelleme</h4>
-                </div>
-
+                <div class="admin-header"><h4><i class="fa-solid fa-pen-to-square"></i> Veri Düzenleme</h4></div>
                 <div class="upload-grid">
-                    <div class="input-field">
-                        <label>Kültürel Açıklama</label>
-                        <textarea id="admin-text" placeholder="Bu kategoriye ait bilgileri giriniz..."></textarea>
-                    </div>
-
-                    <div class="input-field">
-                        <label>YouTube Video Linki</label>
-                        <input type="text" id="admin-youtube-url" placeholder="https://www.youtube.com/watch?v=...">
-                    </div>
-
-                    <div class="input-field">
-                        <label>Fotoğraflar (Max 10 Adet)</label>
-                        <input type="file" id="admin-photos" multiple accept="image/*">
-                        <div id="photo-previews" class="previews"></div>
-                    </div>
+                    <div class="input-field"><label>Açıklama Yazısı</label><textarea id="admin-text"></textarea></div>
+                    <div class="input-field"><label>YouTube Video Linki</label><input type="text" id="admin-youtube-url"></div>
+                    <div class="input-field"><label>Fotoğraflar</label><input type="file" id="admin-photos" multiple></div>
                 </div>
-
-                <button class="btn-save" id="btn-save-data">
-                    <i class="fa-solid fa-floppy-disk"></i> Değişiklikleri Yayınla
-                </button>
+                <button class="btn-save" id="btn-save-data">Değişiklikleri Kaydet</button>
             </div>
         </div>
-    </div>
-
-    <div id="video-full-modal" class="video-full-modal" style="display:none;">
-        <span class="close-video">&times;</span>
-        <div class="video-full-wrapper"></div>
     </div>
 
     <script type="module" src="app.js"></script>
