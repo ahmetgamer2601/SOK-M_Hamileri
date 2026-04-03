@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SOKÜM-HAMİ: KÜLTÜREL MİRAS DİJİTAL ENVANTERİ
- * Çekirdek JavaScript Kontrol Dosyası (Final & Yetkili Sürüm)
+ * Çekirdek JavaScript Kontrol Dosyası - [TAM SÜRÜM - V.FİNAL]
  * ==============================================================================
  */
 
@@ -22,7 +22,7 @@ import {
     serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-// --- 1. FIREBASE & CLOUDINARY AYARLARI ---
+// --- 1. AYARLAR (FIREBASE & CLOUDINARY) ---
 const firebaseConfig = {
     apiKey: "AIzaSyBbZtKpCPbgU1WKXGVxVpUv_bIrZPpcJI4",
     authDomain: "sokum-a3f39.firebaseapp.com",
@@ -37,9 +37,9 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqeywbqe1/upload";
-const CLOUDINARY_PRESET = "sokumcular";
+const CLOUDINARY_PRESET = "sokumcular"; // Cloudinary'de 'Unsigned' olduğundan emin ol!
 
-// --- 2. PLAKA KODU - ŞEHİR İSMİ EŞLEŞTİRME (NULL HATASI ÇÖZÜMÜ) ---
+// --- 2. ŞEHİR EŞLEŞTİRME (Plaka ID -> İsim) ---
 const cityNames = {
     "1": "Adana", "2": "Adıyaman", "3": "Afyonkarahisar", "4": "Ağrı", "5": "Amasya", "6": "Ankara", "7": "Antalya", "8": "Artvin", "9": "Aydın", "10": "Balıkesir",
     "11": "Bilecik", "12": "Bingöl", "13": "Bitlis", "14": "Bolu", "15": "Burdur", "16": "Bursa", "17": "Çanakkale", "18": "Çankırı", "19": "Çorum", "20": "Denizli",
@@ -49,14 +49,14 @@ const cityNames = {
     "51": "Niğde", "52": "Ordu", "53": "Rize", "54": "Sakarya", "55": "Samsun", "56": "Siirt", "57": "Sinop", "58": "Sivas", "59": "Tekirdağ", "60": "Tokat",
     "61": "Trabzon", "62": "Tunceli", "63": "Şanlıurfa", "64": "Uşak", "65": "Van", "66": "Yozgat", "67": "Zonguldak", "68": "Aksaray", "69": "Bayburt", "70": "Karaman",
     "71": "Kırıkkale", "72": "Batman", "73": "Şırnak", "74": "Bartın", "75": "Ardahan", "76": "Iğdır", "77": "Yalova", "78": "Karabük", "79": "Kilis", "80": "Osmaniye", "81": "Düzce",
-    "cy": "Kuzey Kıbrıs Türk Cumhuriyeti"
+    "cy": "KKTC"
 };
 
-// --- 3. GLOBAL DURUM ---
+// --- 3. GLOBAL DEĞİŞKENLER ---
 let currentCityID = null;
 let currentUserData = null;
 
-// --- 4. UYGULAMA BAŞLATMA ---
+// --- 4. UYGULAMA BAŞLATMA (DOM HAZIR OLUNCA) ---
 document.addEventListener('DOMContentLoaded', () => {
     const mapWrapper = document.getElementById('turkey-map');
     if (mapWrapper) {
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupModalEvents();
 });
 
-// --- 5. OTURUM YÖNETİMİ ---
+// --- 5. OTURUM VE KİMLİK YÖNETİMİ ---
 function setupAuthEvents() {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -87,25 +87,59 @@ function setupAuthEvents() {
         }
     });
 
-    // Giriş/Kayıt butonlarını bağla
+    // Giriş İşlemi
     document.getElementById('btn-login').onclick = async () => {
-        const e = document.getElementById('login-email').value;
-        const p = document.getElementById('login-password').value;
-        try { await signInWithEmailAndPassword(auth, e, p); } catch { alert("Giriş Hatalı!"); }
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-password').value;
+        try { 
+            await signInWithEmailAndPassword(auth, email, pass); 
+        } catch (e) { 
+            alert("Giriş yapılamadı: Bilgilerinizi kontrol edin."); 
+        }
     };
 
+    // Kayıt İşlemi
+    document.getElementById('btn-register').onclick = async () => {
+        const name = document.getElementById('reg-name').value;
+        const email = document.getElementById('reg-email').value;
+        const pass = document.getElementById('reg-password').value;
+        try {
+            const res = await createUserWithEmailAndPassword(auth, email, pass);
+            await setDoc(doc(db, "users", res.user.uid), {
+                fullName: name, email: email, role: "user", createdAt: serverTimestamp()
+            });
+        } catch (e) { 
+            alert("Kayıt sırasında hata oluştu: " + e.message); 
+        }
+    };
+
+    // Çıkış İşlemi
     document.getElementById('btn-logout').onclick = () => signOut(auth);
+
+    // FORM GEÇİŞLERİ (Fix: Kayıt ol tuşu çalışmıyor sorunu çözüldü)
+    document.getElementById('to-register').onclick = (e) => {
+        e.preventDefault();
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('register-container').style.display = 'block';
+    };
+
+    document.getElementById('to-login').onclick = (e) => {
+        e.preventDefault();
+        document.getElementById('register-container').style.display = 'none';
+        document.getElementById('login-container').style.display = 'block';
+    };
 }
 
-// --- 6. HARİTA & PANEL ETKİLEŞİMİ ---
+// --- 6. HARİTA ETKİLEŞİMİ ---
 function setupMapEvents() {
     document.getElementById('turkey-map').addEventListener('click', (e) => {
         const target = e.target.closest('path');
         if (target) {
-            let id = target.getAttribute('id');
-            // ID "tr-34" gibi geliyorsa sadece sayıyı al
-            currentCityID = id.includes('-') ? id.split('-')[1] : id; 
-            
+            let fullID = target.getAttribute('id');
+            // ID "tr-06" ise "06"yı al, "6" yap
+            let rawID = fullID.includes('-') ? fullID.split('-')[1] : fullID;
+            currentCityID = parseInt(rawID).toString(); 
+
             const cityName = cityNames[currentCityID] || "Bilinmeyen Şehir";
             document.getElementById('modal-city-name').innerText = cityName;
             document.getElementById('city-modal').style.display = 'block';
@@ -114,13 +148,13 @@ function setupMapEvents() {
     });
 }
 
+// --- 7. PANEL (MODAL) YÖNETİMİ ---
 function setupModalEvents() {
     document.getElementById('close-modal-btn').onclick = () => {
         document.getElementById('city-modal').style.display = 'none';
         document.getElementById('city-video').pause();
     };
 
-    // Sekme geçişleri
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.onclick = (e) => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -129,12 +163,11 @@ function setupModalEvents() {
         };
     });
 
-    // Dosya Seçme & Önizleme
     document.getElementById('media-upload').onchange = handlePreview;
     document.getElementById('btn-submit-media').onclick = handleMediaUpload;
 }
 
-// --- 7. VERİ ÇEKME & ADMİN KONTROLÜ ---
+// --- 8. VERİ ÇEKME VE YETKİ KONTROLÜ ---
 async function loadCityContent(category) {
     const textEl = document.getElementById('content-text');
     const videoEl = document.getElementById('city-video');
@@ -142,13 +175,14 @@ async function loadCityContent(category) {
     
     textEl.innerText = "Yükleniyor...";
     videoEl.style.display = "none";
+    videoEl.src = "";
     sliderEl.innerHTML = "";
 
     try {
         const cityDoc = await getDoc(doc(db, "cities", currentCityID));
         if (cityDoc.exists() && cityDoc.data()[category]) {
             const data = cityDoc.data()[category];
-            textEl.innerText = data.text || "Açıklama yok.";
+            textEl.innerText = data.text || "Bu kategori için henüz açıklama eklenmemiş.";
             
             if (data.videoUrl) {
                 videoEl.src = data.videoUrl;
@@ -156,52 +190,56 @@ async function loadCityContent(category) {
             }
             if (data.images && data.images.length > 0) {
                 data.images.forEach((img, idx) => {
-                    const imgTag = `<img src="${img}" class="${idx === 0 ? 'active' : ''}">`;
-                    sliderEl.innerHTML += imgTag;
+                    sliderEl.innerHTML += `<img src="${img}" class="${idx === 0 ? 'active' : ''}">`;
                 });
             }
         } else {
-            textEl.innerText = "Bu kategoriye henüz veri girilmemiş.";
+            textEl.innerText = "Bu ile ve kategoriye ait veri bulunamadı.";
         }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error("Veri çekme hatası:", e);
+    }
 
-    // ADMİN PANELİ GÖSTERİMİ (Kritik Bölge)
+    // ADMIN KONTROLÜ
     const adminPanel = document.getElementById('admin-controls');
-    if (currentUserData?.role === 'admin') {
+    if (currentUserData && currentUserData.role === 'admin') {
         adminPanel.style.display = 'block';
     } else {
         adminPanel.style.display = 'none';
     }
 }
 
-// --- 8. MEDYA YÜKLEME (1 VİDEO / 10 FOTO / 5 DK) ---
+// --- 9. MEDYA ÖNİZLEME (1 Video / 10 Foto / 5 Dakika) ---
 function handlePreview(e) {
     const files = Array.from(e.target.files);
     const previewArea = document.getElementById('upload-preview');
     previewArea.innerHTML = "";
 
-    let vCount = 0, iCount = 0;
+    let vCount = 0; let iCount = 0;
 
     files.forEach(file => {
         if (file.type.startsWith('video/')) {
             vCount++;
-            if (vCount > 1) return alert("Sadece 1 video!");
+            if (vCount > 1) { alert("Sadece 1 video yükleyebilirsiniz!"); e.target.value = ""; return; }
             
-            const v = document.createElement('video');
-            v.src = URL.createObjectURL(file);
-            v.onloadedmetadata = () => {
-                if (v.duration > 300) alert("Video 5 dakikadan uzun!");
+            const tempVideo = document.createElement('video');
+            tempVideo.src = URL.createObjectURL(file);
+            tempVideo.onloadedmetadata = () => {
+                if (tempVideo.duration > 300) { 
+                    alert("Video 5 dakikadan uzun olamaz!"); 
+                    e.target.value = ""; previewArea.innerHTML = "";
+                }
             };
-            addThumbnail(file, 'video', previewArea);
-        } else {
+            createThumb(file, 'video', previewArea);
+        } else if (file.type.startsWith('image/')) {
             iCount++;
-            if (iCount > 10) return alert("Maksimum 10 fotoğraf!");
-            addThumbnail(file, 'image', previewArea);
+            if (iCount > 10) { alert("Maksimum 10 fotoğraf yükleyebilirsiniz!"); e.target.value = ""; return; }
+            createThumb(file, 'image', previewArea);
         }
     });
 }
 
-function addThumbnail(file, type, container) {
+function createThumb(file, type, container) {
     const reader = new FileReader();
     reader.onload = (e) => {
         const div = document.createElement('div');
@@ -212,15 +250,17 @@ function addThumbnail(file, type, container) {
     reader.readAsDataURL(file);
 }
 
+// --- 10. CLOUDINARY YÜKLEME VE FIRESTORE KAYIT ---
 async function handleMediaUpload() {
-    const files = Array.from(document.getElementById('media-upload').files);
+    const fileInput = document.getElementById('media-upload');
+    const files = Array.from(fileInput.files);
     const category = document.querySelector('.tab-btn.active').dataset.cat;
     const btn = document.getElementById('btn-submit-media');
 
-    if (files.length === 0) return alert("Dosya seçin!");
+    if (files.length === 0) return alert("Lütfen yüklenecek dosya seçin!");
     
     btn.disabled = true;
-    btn.innerText = "Yükleniyor...";
+    btn.innerText = "İşleniyor...";
 
     try {
         let videoUrl = "";
@@ -232,23 +272,32 @@ async function handleMediaUpload() {
             formData.append('upload_preset', CLOUDINARY_PRESET);
 
             const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+            if (!res.ok) throw new Error("Cloudinary hatası!");
             const data = await res.json();
 
             if (file.type.startsWith('video/')) videoUrl = data.secure_url;
             else imageUrls.push(data.secure_url);
         }
 
-        await setDoc(doc(db, "cities", currentCityID), {
+        const cityRef = doc(db, "cities", currentCityID);
+        await setDoc(cityRef, {
             [category]: {
-                videoUrl,
+                videoUrl: videoUrl,
                 images: imageUrls,
-                text: document.getElementById('content-text').innerText,
+                text: document.getElementById('content-text').innerText, // Mevcut metni koru
                 updatedAt: serverTimestamp()
             }
         }, { merge: true });
 
-        alert("Başarıyla yüklendi!");
+        alert("Kültürel Miras başarıyla sisteme kaydedildi!");
+        document.getElementById('upload-preview').innerHTML = "";
+        fileInput.value = "";
         loadCityContent(category);
-    } catch (e) { alert("Hata oluştu!"); }
-    finally { btn.disabled = false; btn.innerText = "Verileri Sisteme Yükle"; }
+    } catch (e) {
+        console.error("Yükleme Hatası:", e);
+        alert("Yükleme sırasında hata oluştu. Lütfen Cloudinary Preset ayarlarını kontrol edin.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Verileri Sisteme Yükle";
+    }
 }
