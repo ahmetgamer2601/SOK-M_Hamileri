@@ -1,28 +1,21 @@
 /**
  * ==============================================================================
- * SOKÜM-HAMİ: KÜLTÜREL MİRAS DİJİTAL ENVANTERİ
- * Çekirdek JavaScript Kontrol Dosyası - [TAM SÜRÜM - V.FİNAL]
+ * SOKÜM-HAMİLERİ | DİJİTAL KÜLTÜR ENVANTERİ
+ * Ana Kontrol Ünitesi (V.4.0 - YouTube & Atanmış Şehir Entegrasyonu)
  * ==============================================================================
  */
 
 import { turkeyMapSVG } from './map-data.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { 
-    getAuth, 
-    onAuthStateChanged, 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    signOut 
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, signOut 
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 import { 
-    getFirestore, 
-    doc, 
-    getDoc, 
-    setDoc, 
-    serverTimestamp 
+    getFirestore, doc, getDoc, setDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-// --- 1. AYARLAR (FIREBASE & CLOUDINARY) ---
+// --- 1. CONFIG & INIT ---
 const firebaseConfig = {
     apiKey: "AIzaSyBbZtKpCPbgU1WKXGVxVpUv_bIrZPpcJI4",
     authDomain: "sokum-a3f39.firebaseapp.com",
@@ -37,9 +30,9 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqeywbqe1/upload";
-const CLOUDINARY_PRESET = "sokumcular"; // Cloudinary'de 'Unsigned' olduğundan emin ol!
+const CLOUDINARY_PRESET = "sokumcular";
 
-// --- 2. ŞEHİR EŞLEŞTİRME (Plaka ID -> İsim) ---
+// --- 2. ŞEHİR SÖZLÜĞÜ (TR-Plaka Sistemi) ---
 const cityNames = {
     "1": "Adana", "2": "Adıyaman", "3": "Afyonkarahisar", "4": "Ağrı", "5": "Amasya", "6": "Ankara", "7": "Antalya", "8": "Artvin", "9": "Aydın", "10": "Balıkesir",
     "11": "Bilecik", "12": "Bingöl", "13": "Bitlis", "14": "Bolu", "15": "Burdur", "16": "Bursa", "17": "Çanakkale", "18": "Çankırı", "19": "Çorum", "20": "Denizli",
@@ -52,252 +45,246 @@ const cityNames = {
     "cy": "KKTC"
 };
 
-// --- 3. GLOBAL DEĞİŞKENLER ---
-let currentCityID = null;
+// --- 3. STATE ---
+let currentCityID = null; // Örn: "TR26"
 let currentUserData = null;
+let activeCategory = "gastronomi";
+let currentSliderIndex = 0;
 
-// --- 4. UYGULAMA BAŞLATMA (DOM HAZIR OLUNCA) ---
+// --- 4. BAŞLATMA ---
 document.addEventListener('DOMContentLoaded', () => {
-    const mapWrapper = document.getElementById('turkey-map');
-    if (mapWrapper) {
-        mapWrapper.innerHTML = turkeyMapSVG;
-        setupMapEvents();
-    }
-    setupAuthEvents();
-    setupModalEvents();
+    initApp();
+    fillCitySelect();
 });
 
-// --- 5. OTURUM VE KİMLİK YÖNETİMİ ---
-function setupAuthEvents() {
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            document.body.className = 'app-active';
-            document.getElementById('auth-section').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
+function initApp() {
+    const mapDiv = document.getElementById('turkey-map');
+    if (mapDiv) {
+        mapDiv.innerHTML = turkeyMapSVG;
+        setupMapInteractions();
+    }
+    setupAuthListeners();
+    setupUIEvents();
+}
 
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (userDoc.exists()) {
-                currentUserData = userDoc.data();
-                document.getElementById('display-username').innerText = currentUserData.fullName;
+// 81 İli Kayıt Formuna Doldur
+function fillCitySelect() {
+    const select = document.getElementById('reg-city');
+    Object.entries(cityNames).forEach(([id, name]) => {
+        const opt = document.createElement('option');
+        opt.value = `TR${id.padStart(2, '0')}`; // "TR26" formatı
+        opt.textContent = name;
+        select.appendChild(opt);
+    });
+}
+
+// --- 5. AUTH MANTIĞI ---
+function setupAuthListeners() {
+    onAuthStateChanged(auth, async (user) => {
+        const authSec = document.getElementById('auth-section');
+        const appCont = document.getElementById('app-content');
+
+        if (user) {
+            const docSnap = await getDoc(doc(db, "users", user.uid));
+            if (docSnap.exists()) {
+                currentUserData = docSnap.data();
+                document.getElementById('display-username').textContent = currentUserData.fullName;
+                document.getElementById('display-usercity').textContent = cityNames[currentUserData.assignedCity.replace('TR', '').replace(/^0+/, '')];
+                
+                authSec.style.display = 'none';
+                appCont.style.display = 'block';
+                document.body.className = 'app-active';
             }
         } else {
+            authSec.style.display = 'flex';
+            appCont.style.display = 'none';
             document.body.className = 'auth-active';
-            document.getElementById('auth-section').style.display = 'flex';
-            document.getElementById('app-content').style.display = 'none';
         }
     });
 
-    // Giriş İşlemi
+    // Giriş
     document.getElementById('btn-login').onclick = async () => {
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-password').value;
-        try { 
-            await signInWithEmailAndPassword(auth, email, pass); 
-        } catch (e) { 
-            alert("Giriş yapılamadı: Bilgilerinizi kontrol edin."); 
-        }
+        try { await signInWithEmailAndPassword(auth, email, pass); } 
+        catch (e) { alert("Hata: Giriş bilgilerini kontrol edin."); }
     };
 
-    // Kayıt İşlemi
+    // Kayıt
     document.getElementById('btn-register').onclick = async () => {
         const name = document.getElementById('reg-name').value;
         const email = document.getElementById('reg-email').value;
         const pass = document.getElementById('reg-password').value;
+        const city = document.getElementById('reg-city').value;
+
+        if(!city) return alert("Lütfen sorumlu olduğunuz şehri seçin!");
+
         try {
             const res = await createUserWithEmailAndPassword(auth, email, pass);
             await setDoc(doc(db, "users", res.user.uid), {
-                fullName: name, email: email, role: "user", createdAt: serverTimestamp()
+                fullName: name, email, assignedCity: city, role: "admin", createdAt: serverTimestamp()
             });
-        } catch (e) { 
-            alert("Kayıt sırasında hata oluştu: " + e.message); 
-        }
+            alert("Kayıt başarılı! Şehrinizin temsilcisi oldunuz.");
+        } catch (e) { alert("Hata: " + e.message); }
     };
 
-    // Çıkış İşlemi
     document.getElementById('btn-logout').onclick = () => signOut(auth);
-
-    // FORM GEÇİŞLERİ (Fix: Kayıt ol tuşu çalışmıyor sorunu çözüldü)
-    document.getElementById('to-register').onclick = (e) => {
-        e.preventDefault();
-        document.getElementById('login-container').style.display = 'none';
-        document.getElementById('register-container').style.display = 'block';
-    };
-
-    document.getElementById('to-login').onclick = (e) => {
-        e.preventDefault();
-        document.getElementById('register-container').style.display = 'none';
-        document.getElementById('login-container').style.display = 'block';
-    };
 }
 
-// --- 6. HARİTA ETKİLEŞİMİ ---
-function setupMapEvents() {
+// --- 6. HARİTA VE MODAL KONTROLÜ ---
+function setupMapInteractions() {
     document.getElementById('turkey-map').addEventListener('click', (e) => {
         const target = e.target.closest('path');
         if (target) {
-            let fullID = target.getAttribute('id');
-            // ID "tr-06" ise "06"yı al, "6" yap
-            let rawID = fullID.includes('-') ? fullID.split('-')[1] : fullID;
-            currentCityID = parseInt(rawID).toString(); 
-
-            const cityName = cityNames[currentCityID] || "Bilinmeyen Şehir";
-            document.getElementById('modal-city-name').innerText = cityName;
+            const rawId = target.getAttribute('id').replace('tr-', '').replace(/^0+/, '');
+            currentCityID = `TR${rawId.padStart(2, '0')}`; // Kesin eşleşme: TR26
+            
+            document.getElementById('modal-city-name').textContent = cityNames[rawId];
+            document.getElementById('modal-city-id').textContent = currentCityID;
             document.getElementById('city-modal').style.display = 'block';
-            loadCityContent('yemek');
+            
+            loadCityContent();
         }
     });
 }
 
-// --- 7. PANEL (MODAL) YÖNETİMİ ---
-function setupModalEvents() {
-    document.getElementById('close-modal-btn').onclick = () => {
-        document.getElementById('city-modal').style.display = 'none';
-        document.getElementById('city-video').pause();
+function setupUIEvents() {
+    // Form Geçişleri
+    document.getElementById('to-register').onclick = () => {
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('register-container').style.display = 'block';
+    };
+    document.getElementById('to-login').onclick = () => {
+        document.getElementById('register-container').style.display = 'none';
+        document.getElementById('login-container').style.display = 'block';
     };
 
+    // Kategori Sekmeleri
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.onclick = (e) => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            loadCityContent(e.target.dataset.cat);
+            btn.classList.add('active');
+            activeCategory = btn.dataset.cat;
+            document.getElementById('cat-title').textContent = btn.textContent;
+            loadCityContent();
         };
     });
 
-    document.getElementById('media-upload').onchange = handlePreview;
-    document.getElementById('btn-submit-media').onclick = handleMediaUpload;
+    document.getElementById('close-modal-btn').onclick = () => {
+        document.getElementById('city-modal').style.display = 'none';
+        document.getElementById('video-container').innerHTML = ''; // Videoyu durdur
+    };
+
+    // Slider Kontrol
+    document.querySelector('.s-next').onclick = () => moveSlider(1);
+    document.querySelector('.s-prev').onclick = () => moveSlider(-1);
+
+    // Kaydetme İşlemi
+    document.getElementById('btn-save-data').onclick = handleSave;
 }
 
-// --- 8. VERİ ÇEKME VE YETKİ KONTROLÜ ---
-async function loadCityContent(category) {
+// --- 7. VERİ YÜKLEME VE GÖRÜNTÜLEME ---
+async function loadCityContent() {
     const textEl = document.getElementById('content-text');
-    const videoEl = document.getElementById('city-video');
-    const sliderEl = document.getElementById('image-slider');
+    const videoCont = document.getElementById('video-container');
+    const slider = document.getElementById('image-slider');
     
-    textEl.innerText = "Yükleniyor...";
-    videoEl.style.display = "none";
-    videoEl.src = "";
-    sliderEl.innerHTML = "";
+    textEl.textContent = "Veriler getiriliyor...";
+    videoCont.innerHTML = '<div class="placeholder"><i class="fa-brands fa-youtube"></i><p>Video aranıyor...</p></div>';
+    slider.innerHTML = '';
 
     try {
         const cityDoc = await getDoc(doc(db, "cities", currentCityID));
-        if (cityDoc.exists() && cityDoc.data()[category]) {
-            const data = cityDoc.data()[category];
-            textEl.innerText = data.text || "Bu kategori için henüz açıklama eklenmemiş.";
+        
+        if (cityDoc.exists() && cityDoc.data()[activeCategory]) {
+            const data = cityDoc.data()[activeCategory];
+            textEl.textContent = data.text || "Henüz açıklama girilmemiş.";
             
-            if (data.videoUrl) {
-                videoEl.src = data.videoUrl;
-                videoEl.style.display = "block";
+            // YouTube Render
+            if (data.youtubeUrl) {
+                const vidId = getYoutubeID(data.youtubeUrl);
+                videoCont.innerHTML = `<iframe src="https://www.youtube.com/embed/${vidId}" allowfullscreen></iframe>`;
+            } else {
+                videoCont.innerHTML = '<div class="placeholder"><i class="fa-brands fa-youtube"></i><p>Video Eklenmemiş</p></div>';
             }
+
+            // Image Slider Render
             if (data.images && data.images.length > 0) {
-                data.images.forEach((img, idx) => {
-                    sliderEl.innerHTML += `<img src="${img}" class="${idx === 0 ? 'active' : ''}">`;
+                data.images.forEach((img, i) => {
+                    slider.innerHTML += `<img src="${img}" class="${i === 0 ? 'active' : ''}">`;
                 });
+                currentSliderIndex = 0;
             }
         } else {
-            textEl.innerText = "Bu ile ve kategoriye ait veri bulunamadı.";
+            textEl.textContent = "Bu kategoriye henüz veri girilmemiş.";
         }
-    } catch (e) {
-        console.error("Veri çekme hatası:", e);
-    }
+    } catch (e) { console.error(e); }
 
-    // ADMIN KONTROLÜ
-    const adminPanel = document.getElementById('admin-controls');
-    if (currentUserData && currentUserData.role === 'admin') {
+    // Admin Yetki Kontrolü (Atanmış Şehir Eşleşmesi)
+    const adminPanel = document.getElementById('admin-panel');
+    if (currentUserData && currentUserData.assignedCity === currentCityID) {
         adminPanel.style.display = 'block';
     } else {
         adminPanel.style.display = 'none';
     }
 }
 
-// --- 9. MEDYA ÖNİZLEME (1 Video / 10 Foto / 5 Dakika) ---
-function handlePreview(e) {
-    const files = Array.from(e.target.files);
-    const previewArea = document.getElementById('upload-preview');
-    previewArea.innerHTML = "";
-
-    let vCount = 0; let iCount = 0;
-
-    files.forEach(file => {
-        if (file.type.startsWith('video/')) {
-            vCount++;
-            if (vCount > 1) { alert("Sadece 1 video yükleyebilirsiniz!"); e.target.value = ""; return; }
-            
-            const tempVideo = document.createElement('video');
-            tempVideo.src = URL.createObjectURL(file);
-            tempVideo.onloadedmetadata = () => {
-                if (tempVideo.duration > 300) { 
-                    alert("Video 5 dakikadan uzun olamaz!"); 
-                    e.target.value = ""; previewArea.innerHTML = "";
-                }
-            };
-            createThumb(file, 'video', previewArea);
-        } else if (file.type.startsWith('image/')) {
-            iCount++;
-            if (iCount > 10) { alert("Maksimum 10 fotoğraf yükleyebilirsiniz!"); e.target.value = ""; return; }
-            createThumb(file, 'image', previewArea);
-        }
-    });
+// --- 8. YOUTUBE & CLOUDINARY YÖNETİMİ ---
+function getYoutubeID(url) {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
 }
 
-function createThumb(file, type, container) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const div = document.createElement('div');
-        div.className = `preview-item ${type}-type`;
-        div.innerHTML = type === 'image' ? `<img src="${e.target.result}">` : `<video src="${e.target.result}"></video>`;
-        container.appendChild(div);
-    };
-    reader.readAsDataURL(file);
-}
+async function handleSave() {
+    const btn = document.getElementById('btn-save-data');
+    const text = document.getElementById('admin-text').value;
+    const ytUrl = document.getElementById('admin-youtube-url').value;
+    const photoFiles = document.getElementById('admin-photos').files;
 
-// --- 10. CLOUDINARY YÜKLEME VE FIRESTORE KAYIT ---
-async function handleMediaUpload() {
-    const fileInput = document.getElementById('media-upload');
-    const files = Array.from(fileInput.files);
-    const category = document.querySelector('.tab-btn.active').dataset.cat;
-    const btn = document.getElementById('btn-submit-media');
+    if (!text && !ytUrl && photoFiles.length === 0) return alert("Lütfen en az bir alan doldurun!");
 
-    if (files.length === 0) return alert("Lütfen yüklenecek dosya seçin!");
-    
     btn.disabled = true;
-    btn.innerText = "İşleniyor...";
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Yayınlanıyor...';
 
     try {
-        let videoUrl = "";
         let imageUrls = [];
-
-        for (const file of files) {
+        // Mevcut resimleri korumak istiyorsak önce çekmeliyiz (opsiyonel)
+        
+        for (let file of photoFiles) {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', CLOUDINARY_PRESET);
-
             const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
-            if (!res.ok) throw new Error("Cloudinary hatası!");
-            const data = await res.json();
-
-            if (file.type.startsWith('video/')) videoUrl = data.secure_url;
-            else imageUrls.push(data.secure_url);
+            const d = await res.json();
+            imageUrls.push(d.secure_url);
         }
 
         const cityRef = doc(db, "cities", currentCityID);
         await setDoc(cityRef, {
-            [category]: {
-                videoUrl: videoUrl,
+            [activeCategory]: {
+                text: text,
+                youtubeUrl: ytUrl,
                 images: imageUrls,
-                text: document.getElementById('content-text').innerText, // Mevcut metni koru
+                updatedBy: auth.currentUser.uid,
                 updatedAt: serverTimestamp()
             }
         }, { merge: true });
 
-        alert("Kültürel Miras başarıyla sisteme kaydedildi!");
-        document.getElementById('upload-preview').innerHTML = "";
-        fileInput.value = "";
-        loadCityContent(category);
-    } catch (e) {
-        console.error("Yükleme Hatası:", e);
-        alert("Yükleme sırasında hata oluştu. Lütfen Cloudinary Preset ayarlarını kontrol edin.");
-    } finally {
+        alert("Veriler başarıyla güncellendi!");
+        loadCityContent();
+    } catch (e) { alert("Hata: " + e.message); }
+    finally {
         btn.disabled = false;
-        btn.innerText = "Verileri Sisteme Yükle";
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Değişiklikleri Yayınla';
     }
+}
+
+// Slider Yardımcısı
+function moveSlider(dir) {
+    const images = document.querySelectorAll('#image-slider img');
+    if (images.length === 0) return;
+    images[currentSliderIndex].classList.remove('active');
+    currentSliderIndex = (currentSliderIndex + dir + images.length) % images.length;
+    images[currentSliderIndex].classList.add('active');
 }
