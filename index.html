@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sokum-Ahi | Kültürel Miras Envanteri</title>
+    <title>Sokum-Hami | Kültürel Miras Envanteri</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="auth-active"> <div id="auth-section" class="auth-overlay">
+<body class="auth-active">
+
+    <div id="auth-section" class="auth-overlay">
         <div class="auth-card">
             <div class="auth-header">
                 <i class="fa-solid fa-landmark-dome"></i>
                 <h1>SOKÜM-Hamileri</h1>
                 <p>Geleceğe Aktarılan Kültürel Miras</p>
             </div>
-
+            
             <div id="login-container">
                 <div class="input-group">
                     <i class="fa-solid fa-envelope"></i>
@@ -63,7 +65,6 @@
                 <h2>Türkiye Kültürel Miras Haritası</h2>
                 <p>İncelemek istediğiniz ili harita üzerinden seçiniz.</p>
             </div>
-
             <div class="map-wrapper">
                 <div id="turkey-map"></div>
             </div>
@@ -76,39 +77,65 @@
                 <h2 id="modal-city-name">Şehir Başlığı</h2>
                 <span class="close-modal" id="close-modal-btn">&times;</span>
             </div>
-        <div class="modal-body">
-    <div class="category-tabs">
-        <button class="tab-btn active" data-cat="yemek">Gastronomi</button>
-        <button class="tab-btn" data-cat="sanat">Zanaat & Sanat</button>
-        <button class="tab-btn" data-cat="kiyafet">Geleneksel Giyim</button>
-        <button class="tab-btn" data-cat="sozlu">Efsaneler & Destanlar</button>
-    </div>
+            
+            <div class="modal-body">
+                <div class="category-tabs">
+                    <button class="tab-btn active" data-cat="yemek">Gastronomi</button>
+                    <button class="tab-btn" data-cat="sanat">Zanaat & Sanat</button>
+                    <button class="tab-btn" data-cat="kiyafet">Geleneksel Giyim</button>
+                    <button class="tab-btn" data-cat="sozlu">Efsaneler & Destanlar</button>
+                </div>
 
-    <div class="city-content-layout">
-        <div class="content-left">
-            <h3 id="content-title">Kategori Başlığı</h3>
-            <p id="content-text">Bu ile ait kültürel bilgiler burada yer alacak. Geçmişten günümüze aktarılan bu miras...</p>
-        </div>
+                <div class="city-content-layout">
+                    
+                    <div class="content-left">
+                        <h3 id="content-title">Kategori Başlığı</h3>
+                        <p id="content-text">Bu ile ait kültürel bilgiler burada yer alacak. Geçmişten günümüze aktarılan bu miras...</p>
+                    </div>
 
-        <div class="content-right">
-            <div class="media-box video-wrapper">
-                <video id="city-video" src=""></video>
-                <div class="video-overlay">
-                    <button class="play-btn" onclick="toggleFullScreenVideo()">
-                        <i class="fa-solid fa-play"></i>
+                    <div class="content-right">
+                        <div class="media-box video-wrapper">
+                            <video id="city-video" src="" style="display:none;"></video>
+                            <div class="video-overlay" id="video-overlay">
+                                <button class="play-btn" onclick="toggleFullScreenVideo()">
+                                    <i class="fa-solid fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="media-box slider-wrapper">
+                            <div class="slider-container" id="image-slider">
+                                </div>
+                            <button class="slider-nav prev"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button class="slider-nav next"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="admin-controls" class="contribution-section" style="display: none;">
+                    <h3><i class="fa-solid fa-cloud-arrow-up"></i> Admin Paneli: Miras Envanteri Güncelle</h3>
+                    <p style="color: var(--text-gray); margin-bottom: 20px; font-size: 0.9rem;">
+                        <i class="fa-solid fa-shield-halved"></i> Sadece yetkili temsilciler medya yükleyebilir.
+                    </p>
+                    
+                    <div class="upload-controls">
+                        <label for="media-upload" class="btn-secondary">
+                            <i class="fa-solid fa-file-import"></i> Medya Dosyalarını Seç
+                        </label>
+                        <input type="file" id="media-upload" accept="image/*,video/*" multiple style="display:none;">
+                        <small>Kural: En fazla 1 Video (Max 5 dk) ve 10 Fotoğraf</small>
+                    </div>
+                    
+                    <div id="upload-preview" class="preview-area"></div>
+                    
+                    <button id="btn-submit-media" class="btn-primary" style="margin-top: 20px; width: auto; padding: 12px 30px;">
+                        <i class="fa-solid fa-check"></i> Verileri Sisteme Yükle
                     </button>
                 </div>
-            </div>
 
-            <div class="media-box slider-wrapper">
-                <div class="slider-container" id="image-slider">
-                    </div>
-                <button class="slider-nav prev"><i class="fa-solid fa-chevron-left"></i></button>
-                <button class="slider-nav next"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
         </div>
     </div>
-</div>
 
     <script type="module" src="app.js"></script>
 </body>
