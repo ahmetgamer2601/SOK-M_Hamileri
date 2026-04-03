@@ -64,7 +64,7 @@ const uploadBtn = document.getElementById('btn-upload');
 
 // Cloudinary Ayarları
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqeywbqe1/upload";
-const CLOUDINARY_UPLOAD_PRESET = "BURAYA_PRESENT_ISMINI_YAZ"; // Cloudinary'den aldığın Preset adını buraya yaz
+const CLOUDINARY_UPLOAD_PRESET = "sokumcular"; // Cloudinary'den aldığın Preset adını buraya yaz
 
 // ---------------------------------------------------------
 // 3. UYGULAMA BAŞLATMA (INIT)
