@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sokum-Hami | Kültürel Miras Envanteri</title>
+    <title>SOKÜM-Hami | Dijital Kültür Envanteri</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -12,28 +12,28 @@
     <div id="auth-section" class="auth-overlay">
         <div class="auth-card">
             <div class="auth-header">
-                <i class="fa-solid fa-landmark-dome"></i>
-                <h1>SOKÜM-Hamileri</h1>
-                <p>Geleceğe Aktarılan Kültürel Miras</p>
+                <i class="fa-solid fa-map-location-dot"></i>
+                <h1>SOKÜM-Hami</h1>
+                <p>Şehrinizin Kültür Elçisi Olun</p>
             </div>
             
             <div id="login-container">
                 <div class="input-group">
                     <i class="fa-solid fa-envelope"></i>
-                    <input type="email" id="login-email" placeholder="E-posta Adresi">
+                    <input type="email" id="login-email" placeholder="E-posta">
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-lock"></i>
                     <input type="password" id="login-password" placeholder="Şifre">
                 </div>
                 <button class="btn-primary" id="btn-login">Giriş Yap</button>
-                <p class="auth-footer">Hesabın yok mu? <a href="#" id="to-register">Kayıt Ol</a></p>
+                <p class="auth-footer">Henüz hesabınız yok mu? <a href="#" id="to-register">Kayıt Ol</a></p>
             </div>
 
             <div id="register-container" style="display: none;">
                 <div class="input-group">
-                    <i class="fa-solid fa-school"></i>
-                    <input type="text" id="reg-name" placeholder="Okul Adı / Temsilci">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="reg-name" placeholder="Ad Soyad / Kurum Adı">
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-envelope"></i>
@@ -43,8 +43,14 @@
                     <i class="fa-solid fa-lock"></i>
                     <input type="password" id="reg-password" placeholder="Şifre">
                 </div>
-                <button class="btn-primary" id="btn-register">Hesap Oluştur</button>
-                <p class="auth-footer">Zaten üye misin? <a href="#" id="to-login">Giriş Yap</a></p>
+                <div class="input-group">
+                    <i class="fa-solid fa-city"></i>
+                    <select id="reg-city">
+                        <option value="" disabled selected>Sorumlu Olduğunuz İl</option>
+                        </select>
+                </div>
+                <button class="btn-primary" id="btn-register">Temsilci Olarak Kaydol</button>
+                <p class="auth-footer">Zaten üye misiniz? <a href="#" id="to-login">Giriş Yap</a></p>
             </div>
         </div>
     </div>
@@ -52,89 +58,106 @@
     <main id="app-content" style="display: none;">
         <nav class="top-nav">
             <div class="nav-left">
-                <div class="logo">SOKÜM-Hami</div>
+                <span class="logo">SOKÜM-HAMİLERİ</span>
             </div>
-            <div class="user-info">
-                <span id="display-username">Yükleniyor...</span>
-                <button id="btn-logout" title="Çıkış Yap"><i class="fa-solid fa-power-off"></i></button>
+            <div class="user-pill">
+                <i class="fa-solid fa-circle-user"></i>
+                <span id="display-username">...</span>
+                <span id="display-usercity" class="city-tag">Şehir</span>
+                <button id="btn-logout"><i class="fa-solid fa-right-from-bracket"></i></button>
             </div>
         </nav>
 
-        <section class="main-dashboard">
-            <div class="content-header">
-                <h2>Türkiye Kültürel Miras Haritası</h2>
-                <p>İncelemek istediğiniz ili harita üzerinden seçiniz.</p>
+        <section class="map-section">
+            <div class="map-info">
+                <h2>Türkiye Kültürel Miras Envanteri</h2>
+                <p>İncelemek için bir şehre tıklayın veya kendi şehrinize veri girin.</p>
             </div>
-            <div class="map-wrapper">
-                <div id="turkey-map"></div>
-            </div>
+            <div class="map-container">
+                <div id="turkey-map"></div> </div>
         </section>
     </main>
 
     <div id="city-modal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-city-name">Şehir Başlığı</h2>
-                <span class="close-modal" id="close-modal-btn">&times;</span>
-            </div>
-            
-            <div class="modal-body">
-                <div class="category-tabs">
-                    <button class="tab-btn active" data-cat="yemek">Gastronomi</button>
-                    <button class="tab-btn" data-cat="sanat">Zanaat & Sanat</button>
-                    <button class="tab-btn" data-cat="kiyafet">Geleneksel Giyim</button>
-                    <button class="tab-btn" data-cat="sozlu">Efsaneler & Destanlar</button>
+            <header class="modal-header">
+                <div class="header-titles">
+                    <h2 id="modal-city-name">Şehir İsmi</h2>
+                    <span class="id-badge" id="modal-city-id">TR00</span>
+                </div>
+                <button class="close-btn" id="close-modal-btn">&times;</button>
+            </header>
+
+            <div class="modal-grid">
+                <div class="grid-left">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-cat="gastronomi">Gastronomi</button>
+                        <button class="tab-btn" data-cat="el-sanatlari">El Sanatları</button>
+                        <button class="tab-btn" data-cat="giysi">Giyim Kuşam</button>
+                        <button class="tab-btn" data-cat="sozlu">Sözlü Kültür</button>
+                    </div>
+                    
+                    <div class="content-box">
+                        <h3 id="cat-title">Gastronomi</h3>
+                        <div id="content-display">
+                            <p id="content-text">Veri yükleniyor...</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="city-content-layout">
-                    
-                    <div class="content-left">
-                        <h3 id="content-title">Kategori Başlığı</h3>
-                        <p id="content-text">Bu ile ait kültürel bilgiler burada yer alacak. Geçmişten günümüze aktarılan bu miras...</p>
-                    </div>
+                <div class="grid-right">
+                    <div class="video-container" id="video-container">
+                        <div id="video-placeholder" class="placeholder">
+                            <i class="fa-brands fa-youtube"></i>
+                            <p>Video Henüz Eklenmemiş</p>
+                        </div>
+                        </div>
 
-                    <div class="content-right">
-                        <div class="media-box video-wrapper">
-                            <video id="city-video" src="" style="display:none;"></video>
-                            <div class="video-overlay" id="video-overlay">
-                                <button class="play-btn" onclick="toggleFullScreenVideo()">
-                                    <i class="fa-solid fa-play"></i>
-                                </button>
+                    <div class="image-gallery">
+                        <div class="slider" id="image-slider">
                             </div>
-                        </div>
-
-                        <div class="media-box slider-wrapper">
-                            <div class="slider-container" id="image-slider">
-                                </div>
-                            <button class="slider-nav prev"><i class="fa-solid fa-chevron-left"></i></button>
-                            <button class="slider-nav next"><i class="fa-solid fa-chevron-right"></i></button>
+                        <div class="slider-controls">
+                            <button class="s-prev"><i class="fa-solid fa-arrow-left"></i></button>
+                            <button class="s-next"><i class="fa-solid fa-arrow-right"></i></button>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div id="admin-controls" class="contribution-section" style="display: none;">
-                    <h3><i class="fa-solid fa-cloud-arrow-up"></i> Admin Paneli: Miras Envanteri Güncelle</h3>
-                    <p style="color: var(--text-gray); margin-bottom: 20px; font-size: 0.9rem;">
-                        <i class="fa-solid fa-shield-halved"></i> Sadece yetkili temsilciler medya yükleyebilir.
-                    </p>
-                    
-                    <div class="upload-controls">
-                        <label for="media-upload" class="btn-secondary">
-                            <i class="fa-solid fa-file-import"></i> Medya Dosyalarını Seç
-                        </label>
-                        <input type="file" id="media-upload" accept="image/*,video/*" multiple style="display:none;">
-                        <small>Kural: En fazla 1 Video (Max 5 dk) ve 10 Fotoğraf</small>
-                    </div>
-                    
-                    <div id="upload-preview" class="preview-area"></div>
-                    
-                    <button id="btn-submit-media" class="btn-primary" style="margin-top: 20px; width: auto; padding: 12px 30px;">
-                        <i class="fa-solid fa-check"></i> Verileri Sisteme Yükle
-                    </button>
+            <div id="admin-panel" class="admin-section" style="display: none;">
+                <div class="admin-header">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                    <h4>Bu Şehirden Sorumlusunuz: Veri Güncelleme</h4>
                 </div>
 
+                <div class="upload-grid">
+                    <div class="input-field">
+                        <label>Kültürel Açıklama</label>
+                        <textarea id="admin-text" placeholder="Bu kategoriye ait bilgileri giriniz..."></textarea>
+                    </div>
+
+                    <div class="input-field">
+                        <label>YouTube Video Linki</label>
+                        <input type="text" id="admin-youtube-url" placeholder="https://www.youtube.com/watch?v=...">
+                    </div>
+
+                    <div class="input-field">
+                        <label>Fotoğraflar (Max 10 Adet)</label>
+                        <input type="file" id="admin-photos" multiple accept="image/*">
+                        <div id="photo-previews" class="previews"></div>
+                    </div>
+                </div>
+
+                <button class="btn-save" id="btn-save-data">
+                    <i class="fa-solid fa-floppy-disk"></i> Değişiklikleri Yayınla
+                </button>
             </div>
         </div>
+    </div>
+
+    <div id="video-full-modal" class="video-full-modal" style="display:none;">
+        <span class="close-video">&times;</span>
+        <div class="video-full-wrapper"></div>
     </div>
 
     <script type="module" src="app.js"></script>
